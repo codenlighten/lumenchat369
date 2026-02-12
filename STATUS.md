@@ -4,6 +4,18 @@
 
 ## Recent Updates
 
+### 2026-02-12 - Group Chat Bot System
+- ✅ **New groupChatManager.js**: Simplified bot for group conversations
+- ✅ **Full Message Tracking**: Tracks ALL messages from all participants (not just bot)
+- ✅ **Running Global Summary**: Auto-updates summary after every interaction
+- ✅ **Message Window**: Keeps last 50 messages, older captured in summary
+- ✅ **Smart Response**: Only responds when mentioned in groups
+- ✅ **CLI Interface**: chat-group-cli.js for testing
+- ✅ **Telegram Bot**: telegram-group-bot.js optimized for group rooms
+- ✅ **Per-Group Isolation**: Separate tracking for each group
+- ✅ **Participant Tracking**: Maintains list of all active participants
+- ✅ Use case: Perfect for Telegram groups, support channels, team discussions
+
 ### 2026-02-12 - Critical Orchestrator Improvements
 - ✅ **Plan Step Auto-Completion**: Orchestrator now automatically marks plan steps as complete after successful terminal commands or code generation
 - ✅ **Memory Content Truncation**: Implemented character limits (200-500 chars) to prevent context window overflow from large code blocks

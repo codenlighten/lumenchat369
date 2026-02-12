@@ -1,0 +1,54 @@
+{
+  "groupId": "test-group",
+  "globalSummary": "The conversation involves a discussion about deploying Node.js applications. Alice initiated the topic by asking for deployment methods, to which Bob suggested using PM2 and Charlie recommended Docker. LumenBot provided a detailed comparison of PM2 and Docker, outlining their pros and cons. PM2 is highlighted for its process management, easy deployment, and built-in load balancing but is limited to Node.js and lacks containerization. Docker is praised for its environment isolation, multi-technology support, and scalability, but noted for its complexity and resource overhead. The participants in this discussion include Alice, Bob, Charlie, and LumenBot. No decisions or action items have been recorded yet, and the conversation is ongoing.",
+  "messages": [
+    {
+      "id": 1,
+      "timestamp": "2026-02-12T17:29:56.450Z",
+      "userId": "user1",
+      "username": "Alice",
+      "text": "Hey everyone! Anyone know how to deploy a Node.js app?",
+      "isBot": false
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-02-12T17:29:56.451Z",
+      "userId": "user2",
+      "username": "Bob",
+      "text": "I usually use PM2 for that",
+      "isBot": false
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-02-12T17:29:56.453Z",
+      "userId": "user3",
+      "username": "Charlie",
+      "text": "Docker is also great for deployments",
+      "isBot": false
+    },
+    {
+      "id": 4,
+      "timestamp": "2026-02-12T17:29:56.456Z",
+      "userId": "user1",
+      "username": "Alice",
+      "text": "@bot what are the pros and cons of PM2 vs Docker?",
+      "isBot": false
+    },
+    {
+      "id": 5,
+      "timestamp": "2026-02-12T17:30:05.004Z",
+      "userId": "bot",
+      "username": "LumenBot",
+      "text": "**PM2 Pros:**\n1. **Process Management:** PM2 is a process manager specifically designed for Node.js applications. It helps keep applications running, restarts them on crashes, and manages logs.\n2. **Easy Deployment:** PM2 simplifies the deployment process for Node.js apps, allowing you to start, stop, and manage your applications easily.\n3. **Built-in Load Balancing:** It can run multiple instances of your app, distributing the load across them.\n\n**PM2 Cons:**\n1. **Limited to Node.js:** PM2 is tailored for Node.js, which means you can't use it for other types of applications directly.\n2. **Not Containerized:** It does not offer the isolation that containers provide, which can result in conflicts in dependencies.\n\n**Docker Pros:**\n1. **Environment Isolation:** Docker containers encapsulate your application and its dependencies, ensuring it runs the same way across different environments.\n2. **Multi-Technology Support:** You can run applications built with different technologies in separate containers.\n3. **Scalability:** Docker simplifies scaling applications, as you can quickly spin up or down containers as needed.\n\n**Docker Cons:**\n1. **Complexity:** Setting up Docker can be more complex than using PM2, especially for beginners.\n2. **Overhead:** Running Docker requires more system resources compared to running a Node.js app directly with PM2, due to the overhead of containerization.\n\nIn summary, if you're focused solely on Node.js applications and need a straightforward management tool, PM2 is a great choice. If you need to manage multiple types of applications or want better environment isolation, Docker is the way to go.",
+      "isBot": true
+    }
+  ],
+  "totalMessages": 5,
+  "lastUpdated": "2026-02-12T17:30:07.963Z",
+  "participants": [
+    "Alice",
+    "Bob",
+    "Charlie",
+    "LumenBot"
+  ]
+}
