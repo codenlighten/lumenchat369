@@ -32,7 +32,7 @@ function getGroupId(msg) {
 }
 
 /**
- * Check if bot should respond (mentioned or DM)
+ * Check if bot should respond (mentioned, DM, or looks like a command)
  */
 async function shouldRespond(msg) {
   // Always respond in private chats
@@ -40,15 +40,38 @@ async function shouldRespond(msg) {
     return true;
   }
   
-  // In groups, only respond when mentioned
+  // In groups, respond when mentioned
   const botInfo = await bot.getMe();
   const botUsername = botInfo.username;
   const text = msg.text || '';
   
-  return text.includes(`@${botUsername}`) || 
-         text.toLowerCase().includes('lumen') ||
-         text.toLowerCase().startsWith('bot,') ||
-         text.toLowerCase().startsWith('hey bot');
+  // Explicit mentions
+  if (text.includes(`@${botUsername}`) || 
+      text.toLowerCase().includes('lumen') ||
+      text.toLowerCase().startsWith('bot,') ||
+      text.toLowerCase().startsWith('hey bot')) {
+    return true;
+  }
+  
+  // Also respond to shell commands (ssh, docker, git, etc.)
+  // This helps in collaborative scenarios where another bot directs us
+  const commandPatterns = [
+    /^ssh\s+/i,
+    /^docker\s+/i,
+    /^git\s+/i,
+    /^npm\s+/i,
+    /^node\s+/i,
+    /^pm2\s+/i,
+    /^curl\s+/i,
+    /^wget\s+/i,
+    /^systemctl\s+/i,
+    /^cat\s+/i,
+    /^ls\s+/i,
+    /^grep\s+/i,
+    /^find\s+/i
+  ];
+  
+  return commandPatterns.some(pattern => pattern.test(text));
 }
 
 /**
