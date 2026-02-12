@@ -32,46 +32,72 @@ function getGroupId(msg) {
 }
 
 /**
- * Check if bot should respond (mentioned, DM, or looks like a command)
+ * Check if bot should respond - let the LLM decide based on full context
  */
-async function shouldRespond(msg) {
+async function shouldRespond(msg, groupId) {
   // Always respond in private chats
   if (msg.chat.type === 'private') {
     return true;
   }
   
-  // In groups, respond when mentioned
+  // In groups: Let LLM decide based on conversation context
+  const { getGroupSummary, addMessage } = await import('./lib/groupChatManager.js');
+  const summary = await getGroupSummary(groupId);
+  
+  // Get recent messages for context
+  const recentMessages = summary.messageCount > 0 
+    ? `Recent conversation with ${summary.participants.join(', ')}`
+    : 'New conversation';
+  
   const botInfo = await bot.getMe();
   const botUsername = botInfo.username;
-  const text = msg.text || '';
+  const currentMessage = msg.text || '';
+  const fromUser = msg.from.username || msg.from.first_name;
   
-  // Explicit mentions
-  if (text.includes(`@${botUsername}`) || 
-      text.toLowerCase().includes('lumen') ||
-      text.toLowerCase().startsWith('bot,') ||
-      text.toLowerCase().startsWith('hey bot')) {
-    return true;
+  // Ask LLM: should I respond?
+  const decisionPrompt = `You are ${botUsername}, an AI assistant in a group chat.
+
+CURRENT MESSAGE:
+From: ${fromUser}
+Text: ${currentMessage}
+
+CONTEXT:
+${recentMessages}
+Summary: ${summary.summary}
+
+Question: Should you respond to this message? Consider:
+- Are you being directly asked or mentioned?
+- Is this a command or question relevant to your capabilities?
+- Would your input add value to the conversation?
+- Or should you stay quiet and just observe?
+
+Respond with ONLY "yes" or "no".`;
+
+  try {
+    const { queryOpenAI } = await import('./lib/openaiWrapper.js');
+    const decision = await queryOpenAI(decisionPrompt, {
+      schema: {
+        type: "object",
+        properties: {
+          shouldRespond: {
+            type: "string",
+            enum: ["yes", "no"],
+            description: "Whether bot should respond to this message"
+          }
+        },
+        required: ["shouldRespond"],
+        additionalProperties: false
+      },
+      temperature: 0.3 // Lower temperature for more consistent decisions
+    });
+    
+    return decision.shouldRespond === "yes";
+  } catch (error) {
+    console.error('Error deciding response:', error.message);
+    // Fallback: respond if explicitly mentioned
+    return currentMessage.includes(`@${botUsername}`) || 
+           currentMessage.toLowerCase().includes('lumen');
   }
-  
-  // Also respond to shell commands (ssh, docker, git, etc.)
-  // This helps in collaborative scenarios where another bot directs us
-  const commandPatterns = [
-    /^ssh\s+/i,
-    /^docker\s+/i,
-    /^git\s+/i,
-    /^npm\s+/i,
-    /^node\s+/i,
-    /^pm2\s+/i,
-    /^curl\s+/i,
-    /^wget\s+/i,
-    /^systemctl\s+/i,
-    /^cat\s+/i,
-    /^ls\s+/i,
-    /^grep\s+/i,
-    /^find\s+/i
-  ];
-  
-  return commandPatterns.some(pattern => pattern.test(text));
 }
 
 /**
@@ -173,8 +199,8 @@ bot.on('message', async (msg) => {
       isBot: false
     });
     
-    // Check if bot should respond
-    const respond = await shouldRespond(msg);
+    // Check if bot should respond (LLM decides based on context)
+    const respond = await shouldRespond(msg, groupId);
     
     if (!respond) {
       console.log(`[${groupId}] Message tracked but not responding: ${username}: ${text.substring(0, 50)}`);
