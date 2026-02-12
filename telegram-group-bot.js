@@ -40,40 +40,49 @@ async function shouldRespond(msg, groupId) {
     return true;
   }
   
-  // In groups: Let LLM decide based on conversation context
-  const { getGroupSummary, addMessage } = await import('./lib/groupChatManager.js');
-  const summary = await getGroupSummary(groupId);
-  
-  // Get recent messages for context
-  const recentMessages = summary.messageCount > 0 
-    ? `Recent conversation with ${summary.participants.join(', ')}`
-    : 'New conversation';
-  
   const botInfo = await bot.getMe();
   const botUsername = botInfo.username;
   const currentMessage = msg.text || '';
-  const fromUser = msg.from.username || msg.from.first_name;
   
-  // Ask LLM: should I respond?
-  const decisionPrompt = `You are ${botUsername}, an AI assistant in a group chat.
+  // Always respond if explicitly mentioned
+  if (currentMessage.includes(`@${botUsername}`) || 
+      currentMessage.toLowerCase().includes('lumen') ||
+      currentMessage.toLowerCase().includes('iriebot')) {
+    return true;
+  }
+  
+  // For other messages, let LLM decide based on context
+  try {
+    const { getGroupSummary } = await import('./lib/groupChatManager.js');
+    const summary = await getGroupSummary(groupId);
+    
+    const fromUser = msg.from.username || msg.from.first_name;
+    
+    // Ask LLM: should I respond?
+    const decisionPrompt = `You are ${botUsername}, a helpful AI assistant in a group chat. You're part of the team.
 
 CURRENT MESSAGE:
 From: ${fromUser}
-Text: ${currentMessage}
+Message: ${currentMessage}
 
-CONTEXT:
-${recentMessages}
-Summary: ${summary.summary}
+CONVERSATION CONTEXT:
+${summary.summary}
 
-Question: Should you respond to this message? Consider:
-- Are you being directly asked or mentioned?
-- Is this a command or question relevant to your capabilities?
-- Would your input add value to the conversation?
-- Or should you stay quiet and just observe?
+Question: Do you have something valuable to contribute to this conversation?
 
-Respond with ONLY "yes" or "no".`;
+Speak up if:
+- You can answer a technical question
+- You can help with a command or task
+- You have relevant information or insights
+- Someone seems to be directing work toward you
 
-  try {
+Stay quiet if:
+- It's casual chat that doesn't need your input
+- Someone else already handled it
+- You'd just be stating the obvious
+
+Your choice: yes or no`;
+
     const { queryOpenAI } = await import('./lib/openaiWrapper.js');
     const decision = await queryOpenAI(decisionPrompt, {
       schema: {
@@ -82,21 +91,22 @@ Respond with ONLY "yes" or "no".`;
           shouldRespond: {
             type: "string",
             enum: ["yes", "no"],
-            description: "Whether bot should respond to this message"
+            description: "Whether bot should respond"
           }
         },
         required: ["shouldRespond"],
         additionalProperties: false
       },
-      temperature: 0.3 // Lower temperature for more consistent decisions
+      temperature: 0.3
     });
+    
+    console.log(`[${groupId}] LLM decision for "${currentMessage.substring(0, 50)}...": ${decision.shouldRespond}`);
     
     return decision.shouldRespond === "yes";
   } catch (error) {
     console.error('Error deciding response:', error.message);
-    // Fallback: respond if explicitly mentioned
-    return currentMessage.includes(`@${botUsername}`) || 
-           currentMessage.toLowerCase().includes('lumen');
+    // On error, don't respond (observe mode)
+    return false;
   }
 }
 
