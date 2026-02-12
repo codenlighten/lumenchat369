@@ -4,6 +4,13 @@
 
 ## Recent Updates
 
+### 2026-02-12 - Critical Orchestrator Improvements
+- ✅ **Plan Step Auto-Completion**: Orchestrator now automatically marks plan steps as complete after successful terminal commands or code generation
+- ✅ **Memory Content Truncation**: Implemented character limits (200-500 chars) to prevent context window overflow from large code blocks
+- ✅ **Atomic File Operations**: Both memory.json and notes.md now use temp file + atomic rename to prevent data corruption
+- ✅ **Repeated Denial Detection**: Added MAX_DENIAL_RETRIES (2) to prevent infinite loops when user repeatedly declines commands
+- ✅ All improvements tested and verified (4/4 tests passing)
+
 ### 2026-02-12 - Enhanced Context Awareness
 - ✅ Updated agent system prompt to explicitly consider conversation history and timestamps
 - ✅ Added temporal awareness guidelines for better continuity across conversations
